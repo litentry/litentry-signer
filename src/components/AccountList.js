@@ -49,6 +49,7 @@ export default class AccountList extends Component {
         </View>
       )
     }
+
     return (
       <ListView
         style={AppStyles.listView}
