@@ -19,7 +19,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, StatusBar, Alert } from 'react-native';
-import Camera from 'react-native-camera';
+import { CameraKitCameraScreen } from 'react-native-camera-kit';
 import { Subscribe } from 'unstated';
 import ScannerStore from '../stores/ScannerStore';
 import AccountsStore from '../stores/AccountsStore';
@@ -39,7 +39,9 @@ export default class Scanner extends Component {
             <QrScannerView
               navigation={this.props.navigation}
               scannerStore={scannerStore}
-              onBarCodeRead={async txRequestData => {
+              onReadQRCode={async e => {
+                console.log(e);
+                const txRequestData = e.nativeEvent.qrcodeStringValue;
                 if (scannerStore.isBusy()) {
                   return;
                 }
@@ -77,7 +79,7 @@ export class QrScannerView extends Component {
   }
 
   static propTypes = {
-    onBarCodeRead: PropTypes.func.isRequired
+    onReadQRCode: PropTypes.func.isRequired
   };
 
   componentWillMount() {
@@ -105,10 +107,20 @@ export class QrScannerView extends Component {
       return <View style={styles.inactive} />;
     }
     return (
-      <Camera onBarCodeRead={this.props.onBarCodeRead} style={styles.view}>
-        <StatusBar barStyle="light-content" />
-        {this.renderRects()}
-      </Camera>
+      <CameraKitCameraScreen
+        actions={{ rightButtonText: 'Done', leftButtonText: 'Cancel' }}
+        onBottomButtonPressed={(event) => this.onBottomButtonPressed(event)}
+        showFrame={true}
+        scanBarcode={true}
+        laserColor={"blue"}
+        surfaceColor={"black"}
+        frameColor={"yellow"}
+        onReadCode={((event) => this.setState({ example: CheckingScreen }))}
+        hideControls={true}
+        // offsetForScannerFrame = {10}
+        // heightForScannerFrame = {300}
+        colorForScannerFrame={'blue'}
+      />
     );
   }
 
@@ -147,7 +159,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent'
   },
   top: {
-    flexBasis: 90
+    flexBasis: 90,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.3)'
@@ -158,20 +170,19 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent'
   },
   middleLeft: {
-    flex: 1
+    flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.3)'
   },
   middleCenter: {
     flexBasis: 250,
-    borderSize: 1,
     backgroundColor: 'transparent'
   },
   middleRight: {
-    flex: 1
+    flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.3)'
   },
   bottom: {
-    flex: 1
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.3)'
