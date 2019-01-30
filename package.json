@@ -15,16 +15,16 @@
     "start": "yarn run ios",
     "test": "jest",
     "lint": "",
-    "commit": ""
+    "commit": "commit-wizard"
   },
   "dependencies": {
     "bignumber.js": "^4.0.0",
     "debounce": "^1.0.0",
     "hoist-non-react-statics": "^2.5.0",
     "prop-types": "^15.6.1",
-    "react": "^16.7.0",
-    "react-native": "0.56",
-    "react-native-camera": "^1.9.0",
+    "react": "16.7.0",
+    "react-native": "0.57.8",
+    "react-native-camera": "^1.9.2",
     "react-native-keyboard-aware-scroll-view": "^0.5.0",
     "react-native-markdown-renderer": "^3.2.8",
     "react-native-qrcode": "^0.2.7",
@@ -39,15 +39,21 @@
     "@babel/cli": "^7.0.0-beta.56",
     "@babel/core": "^7.0.0-beta.56",
     "@babel/plugin-proposal-class-properties": "^7.3.0",
+    "@babel/plugin-proposal-object-rest-spread": "^7.3.1",
+    "@babel/plugin-transform-runtime": "^7.2.0",
     "@babel/preset-env": "^7.0.0-beta.56",
     "@babel/preset-react": "^7.0.0-beta.56",
+    "@babel/runtime": "^7.3.1",
+    "babel-core": "7.0.0-bridge.0",
     "babel-eslint": "^10.0.1",
     "babel-jest": "24.0.0",
-    "babel-preset-react-native": "5.0.2",
+    "babel-loader": "v8.0.0-beta.1",
     "jest": "24.0.0",
     "jest-react-native": "^18.0.0",
+    "metro-react-native-babel-preset": "^0.45.0",
     "pre-git": "^3.14.0",
     "prettier": "1.12.1",
+    "react-test-renderer": "^16.7.0",
     "reactotron-react-native": "^2.1.5"
   },
   "rnpm": {
@@ -60,5 +66,18 @@
     "setupFiles": [
       "<rootDir>/jest-setup.js"
     ]
+  },
+  "release": {
+    "analyzeCommits": "simple-commit-message"
+  },
+  "config": {
+    "pre-git": {
+      "commit-msg": "simple",
+      "pre-commit": [],
+      "pre-push": [],
+      "post-commit": [],
+      "post-checkout": [],
+      "post-merge": []
+    }
   }
 }
