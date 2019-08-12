@@ -1,36 +1,5 @@
-![Parity Signer](https://wiki.parity.io/images/logo-parity-signer.jpg)
 
-[<img src="./res/github-badge.png" width="250"/>](https://github.com/paritytech/parity-signer/releases/)
-[<img src="./res/google-play-badge.png" width="250"/>](https://play.google.com/store/apps/details?id=io.parity.signer)
-[<img src="./res/app-store-badge.png" width="250"/>](https://itunes.apple.com/us/app/parity-signer/id1218174838)
-
-# Parity Signer - Turn your smartphone into a hardware wallet
-
-Parity Signer is a mobile application that allows any smartphone to act as an air-gapped crypto wallet. This is also known as "cold storage".
-
-Once the app has been installed, users can create Ethereum accounts, sign messages/transactions, and transfer funds to and from these accounts without any sort of connectivity enabled on the device.
-
-Users can opt to shut off and even physically remove the smartphone's Wifi, Mobile Network, and Bluetooth to ensure that the mobile phone containing these accounts will not be exposed to any online threat.
-
-**Disabling the mobile phone's networking abilities is a requirement for the app to be used as intended.**
-
-Have a look at the tutorial on our wiki to learn how to use [Parity Signer together with Fether](https://wiki.parity.io/Parity-Signer-Mobile-App-Fether-tutorial) or [MyCrypto app](https://wiki.parity.io/Parity-Signer-Mobile-App-MyCrypto-tutorial).
-
-Any data transfer from or to the app will happen using QR code scanning. By doing so, the most sensitive piece of information, the private keys, will never leave the phone. The Parity Signer mobile app can be used to store any Ethereum account, this includes ETH, ETC as well as Ether from various testnets (Kovan, Ropsten...).
-
-## Device security
-
-Parity Signer was built to be used offline. The mobile device used to run the app will hold valuable information that needs to be kept securely stored. It is therefore advised to:
-- Get a separate mobile device.
-- Make a factory reset.
-- Enable full-disk encryption on the device, with a reasonable password (might not be on by default, for example for older Android devices).
-- Do not use any kind of biometrics such as fingerprint or face recognition for device decryption/unlocking, as those may be less secure than regular passwords.
-- Once the app has been installed, enable airplane mode and make sure to switch off Wifi, Bluetooth or any connection ability of the device.
-- Only charge the phone on a power outlet that is never connected to the internet. Only charge the phone with the manufacturer's charging adapter. Do not charge the phone on public USB chargers.
-
-## Screenshots
-
-![Parity Signer Screenshots](docs/screenshots.jpg)
+# Litentry Signer
 
 ## Build it
 ### Requirements
@@ -71,6 +40,14 @@ Parity Signer was built to be used offline. The mobile device used to run the ap
 
 ### Usage
 
+first, start React Native server
+
+```
+yarn start
+```
+
+and then 
+
 - iOS
 
     ```
@@ -82,32 +59,6 @@ Parity Signer was built to be used offline. The mobile device used to run the ap
     ```
     yarn run android
     ```
-
-
-### Test Parity Signer
-
-For a super quick test and to avoid the hurdle of creating an account, sending funds to it and finally create a transaction as described in the [tutorial using Parity Fether](https://wiki.parity.io/Parity-Signer-Mobile-App-Fether-tutorial) or the [tutorial using MyCrypto](https://wiki.parity.io/Parity-Signer-Mobile-App-MyCrypto-tutorial), you can use a pre-funded account on Kovan Network and the following workflow. To get access to this account, you need to:
-
-- Recover an account
-- Select `Kovan` network and choose a name
-- Use the recovery phrase: `this is sparta` you'll get the account address: `006E27B6A72E1f34C626762F3C4761547Aff1421`
-- Validate and accept the warning message
-- Chose a pin code
-- Scan this QR code to sign a transaction sending some Kovan Eth to the same account.
-
-![qr code parity signer](docs/tx_qr.png)
-
-Corresponding data:
-
-```json
-{
-    "action": "signTransaction",
-    "data": {
-        "account": "006e27b6a72e1f34c626762f3c4761547aff1421",
-        "rlp": "ea1584ee6b280082520894006e27b6a72e1f34c626762f3c4761547aff1421872386f26fc10000802a8080"
-    }
-}
-```
 
 ### Troubleshooting
 
