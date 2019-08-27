@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
+// @flow
+
 'use strict';
 
 import React from 'react';
@@ -22,7 +24,7 @@ import {
   findNodeHandle,
   SafeAreaView,
   StyleSheet,
-  Text
+  Text,
 } from 'react-native';
 import { Subscribe } from 'unstated';
 
@@ -32,14 +34,16 @@ import AccountCard from '../components/AccountCard';
 import AccountSeed from '../components/AccountSeed';
 import Background from '../components/Background';
 import Button from '../components/Button';
+import DerivationPathField from '../components/DerivationPathField';
 import KeyboardScrollView from '../components/KeyboardScrollView';
 import NetworkButton from '../components/NetworkButton';
 import TextInput from '../components/TextInput';
-import { NETWORK_LIST } from '../constants';
+import { NETWORK_LIST, NetworkProtocols } from '../constants';
 import AccountsStore from '../stores/AccountsStore';
-import { validateSeed } from '../util/account';
+import { empty, validateSeed } from '../util/account';
 import { debounce } from '../util/debounce';
-import { brainWalletAddress } from '../util/native';
+import { brainWalletAddress, substrateAddress } from '../util/native';
+import {constructSURI} from '../util/suri';
 
 export default class AccountRecover extends React.Component {
   static navigationOptions = {
@@ -60,31 +64,101 @@ class AccountRecoverView extends React.Component {
   constructor(...args) {
     super(...args);
 
-    this.state = { seed: '' };
+    this.state = {
+      derivationPassword: '',
+      derivationPath: '',
+      isDerivationPathValid: true,
+      seedPhrase: '',
+      selectedAccount: undefined,
+      selectedNetwork: undefined,
+    };
   }
 
-  addressGeneration = seed => {
+  static getDerivedStateFromProps(nextProps, prevState) {
+    const selectedAccount = nextProps.accounts.getNew();
+    const selectedNetwork = NETWORK_LIST[selectedAccount.networkKey];
+
+    return {
+      derivationPassword: prevState.derivationPassword,
+      derivationPath: prevState.derivationPath,
+      seedPhrase: prevState.seedPhrase,
+      selectedAccount,
+      selectedNetwork,
+    }
+  }
+
+  clearNewAccount = function () {
     const { accounts } = this.props;
 
-    brainWalletAddress(seed)
-      .then(({ address, bip39 }) =>
-        accounts.updateNew({ address, seed, validBip39Seed: bip39 })
-      )
-      .catch(console.error);
+    accounts.updateNew({ address:'', derivationPath:'', derivationPassword:'', seed:'', seedPhrase:'', validBip39Seed: false })
+  }
+
+  addressGeneration = (seedPhrase, derivationPath = '', derivationPassword = '') => {
+    const { accounts } = this.props;
+    const { selectedNetwork:{protocol, prefix} } = this.state;
+
+    if (!seedPhrase){
+      this.clearNewAccount();
+      
+      return;
+    }
+
+    if (protocol === NetworkProtocols.ETHEREUM){
+      brainWalletAddress(seedPhrase)
+        .then(({ address, bip39 }) =>
+          accounts.updateNew({ address, seed: seedPhrase, seedPhrase, validBip39Seed: bip39 })
+        )
+        .catch(console.error);
+    } else {
+      // Substrate
+      try {
+        const suri = constructSURI({
+          derivePath: derivationPath,
+          password: derivationPassword,
+          phrase: seedPhrase
+        });
+
+        substrateAddress(suri, prefix)
+          .then((address) => {
+            accounts.updateNew({ address, derivationPath, derivationPassword, seed: suri, seedPhrase, validBip39Seed: true })
+          })
+          .catch(() => {
+            //invalid phrase
+            this.clearNewAccount();
+          });
+      } catch (e) {
+        // invalid phrase or derivation path
+        this.clearNewAccount();
+      }
+      
+    }
   };
 
   debouncedAddressGeneration = debounce(this.addressGeneration, 200);
 
   componentWillUnmount = function() {
     // called when the user goes back, or finishes the whole recovery process
-    this.props.accounts.updateNew({ seed: '' });
+    this.props.accounts.updateNew(empty());
   };
+
+  componentDidUpdate(_, prevState){
+    const {derivationPassword, derivationPath, seedPhrase } = this.state;
+
+    if (prevState.selectedNetwork !== this.state.selectedNetwork){
+      this.addressGeneration(seedPhrase, derivationPath, derivationPassword);
+    }
+  }
+
+  toggleAdvancedField = () => {
+    this.setState({showAdvancedField: !this.state.showAdvancedField}) 
+  }
 
   render() {
     const { accounts, navigation } = this.props;
-    const selected = accounts.getNew();
-    const networkKey = selected.networkKey;
-    const network = NETWORK_LIST[networkKey];
+    const { derivationPassword, derivationPath, isDerivationPathValid, selectedAccount, selectedNetwork} = this.state;
+    const {address, name, networkKey, seedPhrase, validBip39Seed} = selectedAccount;
+    const isSubstrate = selectedNetwork.protocol === NetworkProtocols.SUBSTRATE;
+
     return (
       <SafeAreaView style={styles.safeAreaView}>
         <KeyboardScrollView
@@ -98,11 +172,11 @@ class AccountRecoverView extends React.Component {
           <Background />
           <Text style={styles.titleTop}>RECOVER ACCOUNT</Text>
           <Text style={styles.title}>CHOOSE NETWORK</Text>
-          <NetworkButton network={network} />
+          <NetworkButton network={selectedNetwork} />
           <Text style={styles.title}>ACCOUNT NAME</Text>
           <TextInput
             onChangeText={name => accounts.updateNew({ name })}
-            value={selected && selected.name}
+            value={name}
             placeholder="Enter an account name"
           />
           <Text style={[styles.title, { marginTop: 20 }]}>
@@ -115,32 +189,40 @@ class AccountRecoverView extends React.Component {
               );
             }}
             ref={this._seed}
-            valid={validateSeed(selected.seed, selected.validBip39Seed).valid}
-            onChangeText={seed => {
-              this.debouncedAddressGeneration(seed);
-              this.setState({ seed });
+            valid={validateSeed(seedPhrase, validBip39Seed).valid || (isSubstrate && address)}
+            onChangeText={seedPhrase => {
+              this.debouncedAddressGeneration(seedPhrase, derivationPath, derivationPassword);
+              this.setState({ seedPhrase });
             }}
-            value={this.state.seed}
+            value={this.state.seedPhrase}
           />
+          {isSubstrate && <DerivationPathField
+            onChange = { ({derivationPassword, derivationPath, isDerivationPathValid}) => {
+              this.debouncedAddressGeneration(seedPhrase, derivationPath, derivationPassword);
+              this.setState({ derivationPath, derivationPassword, isDerivationPathValid });
+            }}
+            styles={styles}
+          />}
           <AccountCard
             style={{ marginTop: 20 }}
-            address={selected.address || ''}
-            networkKey={selected.networkKey || ''}
-            title={selected.name}
-            seedType={selected.validBip39Seed ? 'bip39' : 'brain wallet'}
+            address={address || ''}
+            networkKey={networkKey || ''}
+            title={name}
+            seedType={validBip39Seed ? 'bip39' : 'brain wallet'}
           />
           <Button
             buttonStyles={{ marginBottom: 40 }}
+            disabled={isSubstrate && (!address || !isDerivationPathValid)}
             title="Next Step"
             onPress={() => {
               const validation = validateSeed(
-                selected.seed,
-                selected.validBip39Seed
+                seedPhrase,
+                validBip39Seed
               );
 
               if (!validation.valid) {
                 if (validation.accountRecoveryAllowed) {
-                  return Alert.alert('Warning:', `${validation.reason}`, [
+                  return Alert.alert('Warning', `${validation.reason}`, [
                     {
                       text: 'I understand the risks',
                       style: 'default',
@@ -159,7 +241,7 @@ class AccountRecoverView extends React.Component {
                     }
                   ]);
                 } else {
-                  return Alert.alert('Error:', `${validation.reason}`, [
+                  return Alert.alert('Error', `${validation.reason}`, [
                     {
                       text: 'Back',
                       style: 'cancel'

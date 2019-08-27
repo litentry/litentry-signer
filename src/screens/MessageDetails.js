@@ -18,7 +18,7 @@
 
 import PropTypes from 'prop-types';
 import React from 'react';
-import { ScrollView, StyleSheet, Text } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text } from 'react-native';
 import { Subscribe } from 'unstated';
 import colors from '../colors';
 import fonts from "../fonts";
@@ -27,9 +27,7 @@ import Background from '../components/Background';
 import Button from '../components/Button';
 import AccountsStore from '../stores/AccountsStore';
 import ScannerStore from '../stores/ScannerStore';
-import { hexToAscii, isAscii } from '../util/message';
-
-const orUnknown = (value = 'Unknown') => value;
+import { isAscii } from '../util/message';
 
 export default class MessageDetails extends React.PureComponent {
   static navigationOptions = {
@@ -41,8 +39,8 @@ export default class MessageDetails extends React.PureComponent {
       <Subscribe to={[ScannerStore, AccountsStore]}>
         {(scannerStore, accounts) => {
           const dataToSign = scannerStore.getDataToSign();
+
           if (dataToSign) {
-            const tx = scannerStore.getTx();
             return (
               <MessageDetailsView
                 {...this.props}
@@ -50,6 +48,7 @@ export default class MessageDetails extends React.PureComponent {
                 sender={scannerStore.getSender()}
                 message={scannerStore.getMessage()}
                 dataToSign={dataToSign}
+                isOversized={scannerStore.getIsOversized()}
                 onPressAccount={async account => {
                   await accounts.select(account);
                   this.props.navigation.navigate('AccountDetails');
@@ -78,11 +77,14 @@ export class MessageDetailsView extends React.PureComponent {
   static propTypes = {
     onNext: PropTypes.func.isRequired,
     dataToSign: PropTypes.string.isRequired,
+    isOversized: PropTypes.bool.isRequired,
     sender: PropTypes.object.isRequired,
     message: PropTypes.string.isRequired
   };
 
   render() {
+    const {data, isOversized, message, onNext, onPressAccount, sender} = this.props;
+
     return (
       <ScrollView
         contentContainerStyle={styles.bodyContent}
@@ -92,23 +94,40 @@ export class MessageDetailsView extends React.PureComponent {
         <Text style={styles.topTitle}>SIGN MESSAGE</Text>
         <Text style={styles.title}>FROM ACCOUNT</Text>
         <AccountCard
-          title={this.props.sender.name}
-          address={this.props.sender.address}
-          networkKey={this.props.sender.networkKey}
+          title={sender.name}
+          address={sender.address}
+          networkKey={sender.networkKey}
           onPress={() => {
-            this.props.onPressAccount(this.props.sender);
+            onPressAccount(sender);
           }}
         />
         <Text style={styles.title}>MESSAGE</Text>
         <Text style={styles.message}>
-          {isAscii(this.props.message)
-            ? hexToAscii(this.props.message)
-            : this.props.data}
+          {isAscii(message)
+            ? message
+            : data}
         </Text>
         <Button
           buttonStyles={{ height: 60 }}
           title="Sign Message"
-          onPress={() => this.props.onNext()}
+          onPress={() => {
+            isOversized
+              ? Alert.alert(
+                  "Warning",
+                  "The payload of the transaction you are signing is too big to be decoded. Not seeing what you are signing is inherently unsafe. If possible, contact the developer of the application generating the transaction to ask for multipart support.",
+                  [
+                    {
+                      text: 'I take the risk',
+                      onPress: () => onNext()
+                    },
+                    {
+                      text: 'Cancel',
+                      style: 'cancel'
+                    }
+                  ]
+                )
+              : onNext()
+          }}
         />
       </ScrollView>
     );

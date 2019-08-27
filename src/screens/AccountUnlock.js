@@ -33,6 +33,7 @@ export class AccountUnlockAndSign extends React.PureComponent {
   render() {
     const { navigation } = this.props;
     const next = navigation.getParam('next', 'SignedTx');
+
     return (
       <Subscribe to={[AccountsStore, ScannerStore]}>
         {(accounts, scannerStore) => (
@@ -41,7 +42,6 @@ export class AccountUnlockAndSign extends React.PureComponent {
             accounts={accounts}
             checkPin={async pin => {
               try {
-                scannerStore.getTXRequest();
                 await scannerStore.signData(pin);
                 return true;
               } catch (e) {
@@ -119,6 +119,8 @@ class AccountUnlockView extends React.PureComponent {
   };
 
   render() {
+    const {checkPin, navigate} = this.props;
+
     return (
       <View style={styles.body}>
         <Background />
@@ -131,8 +133,8 @@ class AccountUnlockView extends React.PureComponent {
             if (pin.length < 4) {
               return;
             }
-            if (await this.props.checkPin(pin)) {
-              this.props.navigate();
+            if (await checkPin(pin)) {
+              navigate();
             } else if (pin.length > 5) {
               this.setState({ hasWrongPin: true });
             }

@@ -40,13 +40,13 @@
 
 ### Usage
 
-first, start React Native server
+- First start React Native server with increased heap to prevent out of memory error
 
-```
-yarn start
-```
+    ```
+    yarn start
+    ```
 
-and then 
+Then:
 
 - iOS
 
