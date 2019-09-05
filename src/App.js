@@ -25,7 +25,8 @@ import {
   createAppContainer,
   createStackNavigator,
   HeaderBackButton,
-  withNavigation
+  withNavigation,
+  createBottomTabNavigator
 } from 'react-navigation';
 import { Provider as UnstatedProvider } from 'unstated';
 import { MenuProvider } from 'react-native-popup-menu';
@@ -56,16 +57,17 @@ import SignedMessage from './screens/SignedMessage';
 import SignedTx from './screens/SignedTx';
 import TermsAndConditions from './screens/TermsAndConditions';
 import TxDetails from './screens/TxDetails';
+import TokenList from './modules/token/screens/TokenList';
 
 export default class App extends Component {
   render() {
     return (
       <UnstatedProvider>
-        <MenuProvider backHandler={true}>
-          <StatusBar barStyle="light-content" />
-          <Background />
-          <ScreensContainer />
-        </MenuProvider>
+				<MenuProvider backHandler={true}>
+					<StatusBar barStyle="light-content" />
+					<Background />
+					<ScreensContainer />
+				</MenuProvider>
       </UnstatedProvider>
     );
   }
@@ -125,7 +127,7 @@ const Screens = createStackNavigator(
             }
           }
         },
-        { 
+        {
           defaultNavigationOptions: globalStackNavigationOptions,
           headerMode: 'screen',
         }
@@ -207,7 +209,7 @@ const Screens = createStackNavigator(
             screen: AccountEdit
           }
         },
-        { 
+        {
           defaultNavigationOptions: globalStackNavigationOptions,
           initialRouteParams: {
             isWelcome: true
@@ -223,4 +225,13 @@ const Screens = createStackNavigator(
   }
 );
 
-const ScreensContainer = createAppContainer(Screens);
+const TokenStacks = createStackNavigator({
+  TokenList: TokenList,
+});
+
+const TabNavigator = createBottomTabNavigator({
+  Home: Screens,
+  Token: TokenStacks,
+});
+
+const ScreensContainer = createAppContainer(TabNavigator);
