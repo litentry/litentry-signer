@@ -17,10 +17,16 @@
 // @flow
 
 import { GenericExtrinsicPayload } from '@polkadot/types';
-import { hexStripPrefix, hexToU8a, u8aToHex, u8aToString } from '@polkadot/util';
+import {
+  hexStripPrefix,
+  hexToU8a,
+  u8aToHex,
+  u8aToString
+} from '@polkadot/util';
 import { encodeAddress } from '@polkadot/util-crypto';
 
-import { blake2s, keccak } from './native';
+import { blake2s } from './native';
+import { NETWORK_LIST, SUBSTRATE_NETWORK_LIST, SubstrateNetworkKeys } from '../constants';
 
 /*
   Example Full Raw Data
@@ -88,7 +94,7 @@ export function rawDataToU8A(rawData) {
 
 export async function constructDataFromBytes(bytes) {
   const frameInfo = hexStripPrefix(u8aToHex(bytes.slice(0, 5)));
-  const isMultipart = !!(parseInt(frameInfo.substr(0, 2), 16));
+  const isMultipart = !!parseInt(frameInfo.substr(0, 2), 16);
   const frameCount = parseInt(frameInfo.substr(2, 4), 16);
   const currentFrame = parseInt(frameInfo.substr(6, 4), 16);
   const uosAfterFrames = hexStripPrefix(u8aToHex(bytes.slice(5)));
@@ -116,7 +122,12 @@ export async function constructDataFromBytes(bytes) {
     // decode payload appropriately via UOS
     switch (zerothByte) {
       case '45': // Ethereum UOS payload
-        action = firstByte === '00' || firstByte === '01' ? 'signData' : firstByte === '01' ? 'signTransaction' : null;
+        action =
+          firstByte === '00' || firstByte === '01'
+            ? 'signData'
+            : firstByte === '01'
+            ? 'signTransaction'
+            : null;
         address = uosAfterFrames.substr(4, 44);
 
         data['action'] = action;
@@ -125,50 +136,90 @@ export async function constructDataFromBytes(bytes) {
         if (action === 'signData') {
           data['data']['rlp'] = uosAfterFrames[13];
         } else if (action === 'signTransaction') {
-          data['data']['data'] = rawAfterFrames[13];
+          data['data']['data'] = uosAfterFrames[13];
         } else {
           throw new Error('Could not determine action type.');
         }
         break;
       case '53': // Substrate UOS payload
-        const crypto = firstByte === '00' ? 'ed25519' : firstByte === '01' ? 'sr25519' : null;
-        const pubKeyHex = uosAfterFrames.substr(6, 64)
-        const publicKeyAsBytes = hexToU8a('0x' + pubKeyHex);
-        const ss58Encoded = encodeAddress(publicKeyAsBytes, 2); // encode to kusama
-        const hexEncodedData = '0x' + uosAfterFrames.slice(70);
-        const rawPayload = hexToU8a(hexEncodedData);
-        const isOversized = rawPayload.length > 256;
+        try {
+          const crypto = firstByte === '00' ? 'ed25519' : firstByte === '01' ? 'sr25519' : null;
+          data['data']['crypto'] = crypto;
 
-        data['data']['crypto'] = crypto;
-        data['data']['account'] = ss58Encoded;
+          const pubKeyHex = uosAfterFrames.substr(6, 64)
+          const publicKeyAsBytes = hexToU8a('0x' + pubKeyHex);
+          const hexEncodedData = '0x' + uosAfterFrames.slice(70);
+          const rawPayload = hexToU8a(hexEncodedData);
 
-        switch(secondByte) {
-          case '00':
-            data['action'] = 'signTransaction';
-            data['oversized'] = isOversized;
-            data['isHash'] = isOversized;
-            data['data']['data'] = isOversized ? await blake2s(u8aToHex(rawPayload)) : new GenericExtrinsicPayload(rawPayload, { version: 3 });
-            break;
-          case '01':
-            data['action'] = 'signTransaction';
-            data['oversized'] = false;
-            data['isHash'] = true;
-            data['data']['data'] = rawPayload; // data is a hash
-            break;
-          case '02': // immortal
-            data['action'] = 'signTransaction';
-            data['oversized'] = isOversized;
-            data['isHash'] = isOversized;
-            data['data']['data'] = isOversized ? await blake2s(u8aToHex(rawPayload)) : new GenericExtrinsicPayload(rawPayload, { version: 3 });
-            break;
-          case '03': // Cold Signer should attempt to decode message to utf8
-            data['action'] = 'signData';
-            data['oversized'] = isOversized;
-            data['isHash'] = isOversized;
-            data['data']['data'] = isOversized ? await blake2s(u8aToHex(rawPayload)) : u8aToString(rawPayload);
-            break;
-          default:
-            break;
+          const isOversized = rawPayload.length > 256;
+          const defaultPrefix = SUBSTRATE_NETWORK_LIST[SubstrateNetworkKeys.KUSAMA].prefix;
+          let extrinsicPayload;
+          let network;
+
+          switch (secondByte) {
+            case '00': // sign mortal extrinsic
+              extrinsicPayload = new GenericExtrinsicPayload(rawPayload, { version: 3 });
+
+              data['action'] = isOversized ? 'signData' : 'signTransaction';
+              data['oversized'] = isOversized;
+              data['isHash'] = isOversized;
+              data['data']['data'] = isOversized
+                ? await blake2s(u8aToHex(rawPayload))
+                : extrinsicPayload;
+
+              network = NETWORK_LIST[extrinsicPayload.genesisHash.toHex()];
+
+              if (!network) {
+                throw new Error(`Signer does not currently support a chain with genesis hash: ${extrinsicPayload.genesisHash.toHex()}`);
+              }
+
+              data['data']['account'] = encodeAddress(publicKeyAsBytes, network.prefix); // encode to the prefix;
+
+              break;
+            case '01': // data is a hash
+              data['action'] = 'signData';
+              data['oversized'] = false;
+              data['isHash'] = true;
+              data['data']['data'] = rawPayload;
+              data['data']['account'] = encodeAddress(publicKeyAsBytes, defaultPrefix); // default to Kusama
+              break;
+            case '02': // immortal
+              extrinsicPayload = new GenericExtrinsicPayload(rawPayload, { version: 3 });
+
+              data['action'] = isOversized ? 'signData' : 'signTransaction';
+              data['oversized'] = isOversized;
+              data['isHash'] = isOversized;
+              data['data']['data'] = isOversized
+                ? await blake2s(u8aToHex(rawPayload))
+                : extrinsicPayload;
+
+              network = NETWORK_LIST[extrinsicPayload.genesisHash.toHex()];
+
+              if (!network) {
+                throw new Error(`Signer does not currently support a chain with genesis hash: ${extrinsicPayload.genesisHash.toHex()}`);
+              }
+
+              data['data']['account'] = encodeAddress(publicKeyAsBytes, network.prefix); // encode to the prefix;
+
+              break;
+            case '03': // Cold Signer should attempt to decode message to utf8
+              data['action'] = 'signData';
+              data['oversized'] = isOversized;
+              data['isHash'] = isOversized;
+              data['data']['data'] = isOversized
+                ? await blake2s(u8aToHex(rawPayload))
+                : u8aToString(rawPayload);
+              data['data']['account'] = encodeAddress(publicKeyAsBytes, defaultPrefix); // default to Kusama
+              break;
+            default:
+              break;
+          }
+        } catch (e) {
+          if (e) {
+            throw new Error(e);
+          } else {
+            throw new Error('we cannot handle the payload: ', bytes);
+          }
         }
         break;
       default:
@@ -177,40 +228,58 @@ export async function constructDataFromBytes(bytes) {
 
     return data;
   } catch (e) {
-    throw new Error('we cannot handle the payload: ', bytes);
+    if (e) {
+      throw new Error(e);
+    } else {
+      throw new Error('we cannot handle the payload: ', bytes);
+    }
   }
 }
 
-export function decodeToString(message: Uint8Array): string {
+export function decodeToString(message) {
   const decoder = new TextDecoder('utf8');
 
   return decoder.decode(message);
 }
 
-export function asciiToHex(message: string): string {
-  var result = [];
-	for (let i = 0; i < message.length; i++) {
-		var hex = Number(message.charCodeAt(i)).toString(16);
-		result.push(hex);
+export function asciiToHex(message) {
+  let result = [];
+  for (let i = 0; i < message.length; i++) {
+    const hex = Number(message.charCodeAt(i)).toString(16);
+    result.push(hex);
   }
-	return result.join('');
+  return result.join('');
 }
 
-export function hexToAscii(hexBytes: Uint8Array): string {
-	var hex  = hexBytes.toString();
-	var str = '';
-	for (var n = 0; n < hex.length; n += 2) {
-		str += String.fromCharCode(parseInt(hex.substr(n, 2), 16));
-	}
+export function hexToAscii(hexBytes) {
+  const hex = hexBytes.toString();
+  let str = '';
+  for (let n = 0; n < hex.length; n += 2) {
+    str += String.fromCharCode(parseInt(hex.substr(n, 2), 16));
+  }
 
-	return str;
+  return str;
 }
 
 export function isJsonString(str) {
+  if (!str) {
+    return false;
+  }
+
   try {
-      JSON.parse(str);
+    JSON.parse(str);
   } catch (e) {
-      return false;
+    return false;
   }
   return true;
+}
+
+export function isAddressString(str) {
+  if (!str) {
+    return false;
+  }
+
+  return str.substr(0, 2) === '0x' ||
+    str.substr(0, 9) === 'ethereum:' ||
+    str.substr(0, 10) === 'substrate:'
 }

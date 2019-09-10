@@ -1,38 +1,53 @@
+// Copyright 2015-2019 Parity Technologies (UK) Ltd.
+// This file is part of Parity.
+
+// Parity is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// Parity is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with Parity.  If not, see <http://www.gnu.org/licenses/>.
+
+// @flow
+
 import { NetworkProtocols, NETWORK_LIST, SubstrateNetworkKeys } from '../constants';
 
 export function accountId({
   address,
   networkKey
 }) {
-
-  const { ethereumChainId, protocol, genesisHash } = NETWORK_LIST[networkKey];
-
-  if (typeof address !== 'string' || address.length === 0 || !networkKey) {
-    throw new Error(`Couldn't create an accountId, address or networkKey missing`);
+  if (typeof address !== 'string' || address.length === 0 || !networkKey || !NETWORK_LIST[networkKey]) {
+    throw new Error(`Couldn't create an accountId. Address or networkKey missing, or network key was invalid.`);
   }
 
-  if (protocol === NetworkProtocols.SUBSTRATE){ 
+  const { ethereumChainId='', protocol, genesisHash='' } = NETWORK_LIST[networkKey];
+
+  if (protocol === NetworkProtocols.SUBSTRATE) {
     return `${protocol}:${address}:${genesisHash}`;
   } else {
-    return `${protocol}:${address.toLowerCase()}@${ethereumChainId}`;
+    return `${protocol}:0x${address.toLowerCase()}@${ethereumChainId}`;
   }
 }
 
-export function empty(account = {}) {
+export function empty(address = '', networkKey = SubstrateNetworkKeys.KUSAMA) {
   return {
-    address: '',
-    archived: false,
+    address: address,
     createdAt: new Date().getTime(),
-    derivationPassword: '', 
+    derivationPassword: '',
     derivationPath:'',
     encryptedSeed: null,
     name: '',
-    networkKey: SubstrateNetworkKeys.KUSAMA,
+    networkKey: networkKey,
     seed: '',
     seedPhrase: '',
     updatedAt: new Date().getTime(),
     validBip39Seed: false,
-    ...account
   };
 }
 
