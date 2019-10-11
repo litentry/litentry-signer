@@ -27,7 +27,6 @@ import { NETWORK_LIST } from '../constants';
 import fonts from '../fonts';
 import TouchableItem from './TouchableItem';
 
-
 export default class AccountCard extends React.PureComponent {
 	static propTypes = {
 		address: PropTypes.string.isRequired,
@@ -44,7 +43,14 @@ export default class AccountCard extends React.PureComponent {
 	};
 
 	render() {
-		const { address, networkKey, onPress, seedType, shortAddress = false, style } = this.props;
+		const {
+			address,
+			networkKey,
+			onPress,
+			seedType,
+			shortAddress = false,
+			style,
+		} = this.props;
 		let { title } = this.props;
 		title = title.length ? title : AccountCard.defaultProps.title;
 		const seedTypeDisplay = seedType || '';
@@ -70,7 +76,7 @@ export default class AccountCard extends React.PureComponent {
 							<Address
 								address={address}
 								protocol={network.protocol}
-								short = {shortAddress}
+								short={shortAddress}
 							/>
 						</View>
 					</View>
