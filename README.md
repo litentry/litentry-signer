@@ -83,3 +83,8 @@ This should open a menu on the device. In that menu go to `Dev Settings` > `Debu
 1. Edit `./android/local.properties` so that `ndk.dir` points to the absolute path to the NDK directory.
 1. Remove old NDK build with `rm -rf ./NDK`.
 1. Build the new NDK with `./create-ndk-standalone.sh`.
+
+#### Sync with Parity-Signer
+1. update with remote `git fetch upstream`
+2. change to master branch `git checkout master`
+3. merge changes `git merge upstream/master`

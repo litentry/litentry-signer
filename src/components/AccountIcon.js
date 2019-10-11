@@ -21,50 +21,42 @@ import PropTypes from 'prop-types';
 import React, { useEffect, useState } from 'react';
 import { Image } from 'react-native';
 
-import { NetworkProtocols } from '../constants'
+import { NetworkProtocols } from '../constants';
 import { blockiesIcon } from '../util/native';
 
-export default function AccountIcon (props) {
+export default function AccountIcon(props) {
+	AccountIcon.propTypes = {
+		address: PropTypes.string.isRequired,
+		protocol: PropTypes.string.isRequired
+	};
 
-  AccountIcon.propTypes = {
-    address: PropTypes.string.isRequired,
-    protocol: PropTypes.string.isRequired
-  };
+	const { address, protocol, style } = props;
+	const [ethereumIconUri, setEthereumIconUri] = useState('');
 
-  const {address, protocol, style} = props;
-  const [ethereumIconUri, setEthereumIconUri] = useState('');
+	useEffect(() => {
+		if (protocol === NetworkProtocols.ETHEREUM) {
+			loadEthereumIcon(address);
+		}
+	}, [protocol, address]);
 
-  useEffect(() => {
-    if (protocol === NetworkProtocols.ETHEREUM) {
-      loadEthereumIcon(address);
-    }
-  },[protocol, address])
+	const loadEthereumIcon = function(address) {
+		blockiesIcon('0x' + address)
+			.then(ethereumIconUri => {
+				setEthereumIconUri(ethereumIconUri);
+			})
+			.catch(console.error);
+	};
 
-  const loadEthereumIcon = function (address){
-    blockiesIcon('0x'+address)
-    .then((ethereumIconUri) => {
-      setEthereumIconUri(ethereumIconUri);
-    })
-    .catch(console.error)
-  }
+	if (protocol === NetworkProtocols.SUBSTRATE) {
+		return <Identicon value={address} size={style.width || 50} />;
+	} else if (protocol === NetworkProtocols.ETHEREUM && ethereumIconUri) {
+		return (
+			<Image
+				source={{ uri: ethereumIconUri }}
+				style={style || { width: 47, height: 47 }}
+			/>
+		);
+	}
 
-  if (protocol === NetworkProtocols.SUBSTRATE) {
-
-    return (
-      <Identicon
-        value={address}
-        size={style.width || 50 }
-      />
-    );
-  } else if (protocol === NetworkProtocols.ETHEREUM && ethereumIconUri){
-
-    return (
-      <Image 
-        source={{ uri: ethereumIconUri }} 
-        style={style || { width: 47, height: 47 }}
-      />
-    );
-  }
-
-  return null;
+	return null;
 }

@@ -17,35 +17,38 @@
 // @flow
 
 import React from 'react';
-import {
-  StyleSheet,
-  Text,
-} from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 
 import colors from '../colors';
-import fonts from "../fonts";
-import {NetworkProtocols} from '../constants'
+import fonts from '../fonts';
+import { NetworkProtocols } from '../constants';
 
-export default function Address (props) {
-  const {address, protocol = NetworkProtocols.SUBSTRATE, short = false ,style = {}} = props;
-  const prefix = protocol === NetworkProtocols.ETHEREUM ? '0x' : '';
-  let result = address;
+export default function Address(props) {
+	const {
+		address,
+		protocol = NetworkProtocols.SUBSTRATE,
+		short = false,
+		style = {},
+	} = props;
+	const prefix = protocol === NetworkProtocols.ETHEREUM ? '0x' : '';
+	let result = address;
 
-  if (short) {
-    result = `${address.slice(0, 6)}…${address.slice(-6)}`;
-  }
+	if (short) {
+		result = `${address.slice(0, 6)}…${address.slice(-6)}`;
+	}
 
-  return (
-      <Text numberOfLines={1} style={[style, styles.secondaryText]}>
-        {prefix}{result}
-      </Text>
-  );
+	return (
+		<Text numberOfLines={1} style={[style, styles.secondaryText]}>
+			{prefix}
+			{result}
+		</Text>
+	);
 }
 
 const styles = StyleSheet.create({
-  secondaryText: {
-    fontFamily: fonts.regular,
-    color: colors.bg_text_sec,
-    fontSize: 12
-  }
+	secondaryText: {
+		fontFamily: fonts.regular,
+		color: colors.bg_text_sec,
+		fontSize: 12
+	}
 });
