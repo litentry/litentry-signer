@@ -21,83 +21,87 @@ import { StyleSheet, View } from 'react-native';
 import { NavigationActions, StackActions } from 'react-navigation';
 
 import colors from '../colors';
-import { loadAccounts, loadToCAndPPConfirmation, saveAccount } from '../util/db';
+import {
+	loadAccounts,
+	loadToCAndPPConfirmation,
+	saveAccount,
+} from '../util/db';
 
 export default class Loading extends React.PureComponent {
-  static navigationOptions = {
-    title: 'Add Account',
-    headerBackTitle: 'Back'
-  };
+	static navigationOptions = {
+		title: 'Add Account',
+		headerBackTitle: 'Back'
+	};
 
-  async componentDidMount() {
-    const tocPP = await loadToCAndPPConfirmation();
-    const firstScreen = 'Welcome';
-    const firstScreenActions = StackActions.reset({
-      index: 0,
-      actions: [NavigationActions.navigate({ routeName: firstScreen })],
-      key: null
-    });
-    let tocActions;
+	async componentDidMount() {
+		const tocPP = await loadToCAndPPConfirmation();
+		const firstScreen = 'Welcome';
+		const firstScreenActions = StackActions.reset({
+			index: 0,
+			actions: [NavigationActions.navigate({ routeName: firstScreen })],
+			key: null
+		});
+		let tocActions;
 
-    if (!tocPP) {
-      this.migrateAccounts();
+		if (!tocPP) {
+			this.migrateAccounts();
 
-      tocActions = StackActions.reset({
-        index: 0,
-        actions: [
-          NavigationActions.navigate({
-            routeName: 'TocAndPrivacyPolicy',
-            params: {
-              firstScreenActions
-            }
-          })
-        ]
-      });
-    } else {
-      tocActions = firstScreenActions;
-    }
-    
-    await loadAccounts()
-    this.props.navigation.dispatch(tocActions);
-  }
+			tocActions = StackActions.reset({
+				index: 0,
+				actions: [
+					NavigationActions.navigate({
+						routeName: 'TocAndPrivacyPolicy',
+						params: {
+							firstScreenActions
+						}
+					})
+				]
+			});
+		} else {
+			tocActions = firstScreenActions;
+		}
 
-  async migrateAccounts() {
-    const oldAccounts_v1 = await loadAccounts(1);
-    // v2 (up to v2.2.2) are only ethereum accounts 
-    // with now deprectaded `chainId` and `networkType: 'ethereum'` properties
-    // networkKey property is missing since it was introduced in v3.
-    const oldAccounts_v2 = await loadAccounts(2);
-    const oldAccounts = [...oldAccounts_v1, ...oldAccounts_v2]
-    const accounts = oldAccounts.map(a => {
-      let result = {}
-      if (a.chainId) {
-        // The networkKey for Ethereum accounts is the chain id
-        result = { ...a, networkKey: a.chainId, recovered: true };
-        delete result.chainId;
-        delete result.networkType;
-      }
-      return result
-    })
+		await loadAccounts();
+		this.props.navigation.dispatch(tocActions);
+	}
 
-    accounts.forEach(account => {
-      try{
-        saveAccount(account);
-      } catch(e){
-        console.error(e);
-      }
-    });
-  }
+	async migrateAccounts() {
+		const oldAccounts_v1 = await loadAccounts(1);
+		// v2 (up to v2.2.2) are only ethereum accounts
+		// with now deprectaded `chainId` and `networkType: 'ethereum'` properties
+		// networkKey property is missing since it was introduced in v3.
+		const oldAccounts_v2 = await loadAccounts(2);
+		const oldAccounts = [...oldAccounts_v1, ...oldAccounts_v2];
+		const accounts = oldAccounts.map(a => {
+			let result = {};
+			if (a.chainId) {
+				// The networkKey for Ethereum accounts is the chain id
+				result = { ...a, networkKey: a.chainId, recovered: true };
+				delete result.chainId;
+				delete result.networkType;
+			}
+			return result;
+		});
 
-  render() {
-    return <View style={styles.body} />;
-  }
+		accounts.forEach(account => {
+			try {
+				saveAccount(account);
+			} catch (e) {
+				console.error(e);
+			}
+		});
+	}
+
+	render() {
+		return <View style={styles.body} />;
+	}
 }
 
 const styles = StyleSheet.create({
-  body: {
-    backgroundColor: colors.bg,
-    padding: 20,
-    flex: 1,
-    flexDirection: 'column'
-  }
+	body: {
+		backgroundColor: colors.bg,
+		padding: 20,
+		flex: 1,
+		flexDirection: 'column'
+	}
 });

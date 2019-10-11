@@ -21,85 +21,81 @@ import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Subscribe } from 'unstated';
 import colors from '../colors';
-import fonts from "../fonts";
+import fonts from '../fonts';
 import QrView from '../components/QrView';
 import AccountsStore from '../stores/AccountsStore';
 import ScannerStore from '../stores/ScannerStore';
 import { isAscii } from '../util/message';
 
 export default class SignedMessage extends React.PureComponent {
-  render() {
-    return (
-      <Subscribe to={[ScannerStore, AccountsStore]}>
-        {(scanner, accounts) => {
-          return (
-            <SignedMessageView
-              data={scanner.getSignedTxData()}
-              message={scanner.getMessage()}
-            />
-          );
-        }}
-      </Subscribe>
-    );
-  }
+	render() {
+		return (
+			<Subscribe to={[ScannerStore, AccountsStore]}>
+				{(scanner, accounts) => {
+					return (
+						<SignedMessageView
+							data={scanner.getSignedTxData()}
+							message={scanner.getMessage()}
+						/>
+					);
+				}}
+			</Subscribe>
+		);
+	}
 }
 
 export class SignedMessageView extends React.PureComponent {
-  static propTypes = {
-    data: PropTypes.string.isRequired
-  };
+	static propTypes = {
+		data: PropTypes.string.isRequired
+	};
 
-  render() {
-    const { data, message } = this.props;
+	render() {
+		const { data, message } = this.props;
 
-    return (
-      <ScrollView style={styles.body} contentContainerStyle={{ padding: 20 }}>
-        <Text style={styles.topTitle}>SCAN SIGNATURE</Text>
-        <View style={styles.qr}>
-          <QrView data={this.props.data} />
-        </View>
-        <Text style={styles.title}>MESSAGE</Text>
-        <Text style={styles.message}>
-          {isAscii(message)
-            ? message
-            : data}
-        </Text>
-      </ScrollView>
-    );
-  }
+		return (
+			<ScrollView style={styles.body} contentContainerStyle={{ padding: 20 }}>
+				<Text style={styles.topTitle}>SCAN SIGNATURE</Text>
+				<View style={styles.qr}>
+					<QrView data={this.props.data} />
+				</View>
+				<Text style={styles.title}>MESSAGE</Text>
+				<Text style={styles.message}>{isAscii(message) ? message : data}</Text>
+			</ScrollView>
+		);
+	}
 }
 
 const styles = StyleSheet.create({
-  body: {
-    backgroundColor: colors.bg,
-    flex: 1,
-    flexDirection: 'column',
-    overflow: 'hidden'
-  },
-  qr: {
-    marginBottom: 20,
-    backgroundColor: colors.card_bg
-  },
-  topTitle: {
-    textAlign: 'center',
-    color: colors.bg_text_sec,
-    fontSize: 24,
-    fontFamily: fonts.bold,
-    paddingBottom: 20
-  },
-  title: {
-    color: colors.bg_text_sec,
-    fontSize: 18,
-    fontFamily: fonts.bold,
-    paddingBottom: 20
-  },
-  message: {
-    marginBottom: 20,
-    padding: 10,
-    height: 120,
-    lineHeight: 26,
-    fontFamily: fonts.regular,
-    fontSize: 20,
-    backgroundColor: colors.card_bg
-  }
+	body: {
+		backgroundColor: colors.bg,
+		flex: 1,
+		flexDirection: 'column',
+		overflow: 'hidden'
+	},
+	qr: {
+		marginBottom: 20,
+		backgroundColor: colors.card_bg
+	},
+	topTitle: {
+		textAlign: 'center',
+		color: colors.bg_text_sec,
+		fontSize: 24,
+		fontFamily: fonts.bold,
+		paddingBottom: 20
+	},
+	title: {
+		color: colors.bg_text_sec,
+		fontSize: 18,
+		fontFamily: fonts.bold,
+		paddingBottom: 20
+	},
+	message: {
+		marginBottom: 20,
+		padding: 10,
+		height: 120,
+		lineHeight: 26,
+		fontFamily: fonts.regular,
+		fontSize: 20,
+		backgroundColor: colors.card_bg
+	}
 });
