@@ -23,16 +23,34 @@ import { RNCamera } from 'react-native-camera';
 import { Subscribe } from 'unstated';
 
 import colors from '../colors';
-import fonts from "../fonts";
+import fonts from '../fonts';
 import AccountsStore from '../stores/AccountsStore';
 import ScannerStore from '../stores/ScannerStore';
-import { isJsonString, rawDataToU8A } from '../util/decoders';
+import {isAddressString, isJsonString, rawDataToU8A} from '../util/decoders';
 
 export default class Scanner extends React.PureComponent {
   static navigationOptions = {
     title: 'Transaction Details',
     headerBackTitle: 'Scanner'
   };
+
+  constructor(props) {
+    super(props);
+    this.state = { enableScan: true };
+  }
+
+  showErrorMessage(scannerStore, title, message) {
+    this.setState({ enableScan: false });
+    Alert.alert(title, message, [
+      {
+        text: 'Try again',
+        onPress: () => {
+          scannerStore.cleanup();
+          this.setState({ enableScan: true });
+        }
+      }
+    ]);
+  }
 
   render() {
     return (
@@ -43,36 +61,36 @@ export default class Scanner extends React.PureComponent {
               navigation={this.props.navigation}
               scannerStore={scannerStore}
               onBarCodeRead={async txRequestData => {
-                if (scannerStore.isBusy()) {
+                if (scannerStore.isBusy() || !this.state.enableScan) {
                   return;
                 }
 
-                if (isJsonString(txRequestData.data)) { // Ethereum Legacy
-                  await scannerStore.setUnsigned(txRequestData.data);
-                } else {
-                  try {
-                    const strippedData = rawDataToU8A(txRequestData.rawData);
-                    await scannerStore.setParsedData(strippedData, accountsStore);
-                  } catch (e) {
-                    Alert.alert('Unable to parse transaction', e.message, [
-                      {
-                        text: 'Try again',
-                        onPress: () => {
-                          scannerStore.cleanup();
-                        }
-                      }
-                    ]);
-                  }
-                }                
-
-                if (await scannerStore.setData(accountsStore)) {
-                  if (scannerStore.getType() === 'transaction') {
-                    this.props.navigation.navigate('TxDetails');
+                try {
+                  if(isAddressString(txRequestData.data)) {
+                    return this.showErrorMessage(scannerStore, text.ADDRESS_ERROR_TITLE, text.ADDRESS_ERROR_MESSAGE);
+                  } else if (isJsonString(txRequestData.data)) {
+                    // Ethereum Legacy
+                    await scannerStore.setUnsigned(txRequestData.data);
                   } else {
-                    this.props.navigation.navigate('MessageDetails');
+                    const strippedData = rawDataToU8A(txRequestData.rawData);
+                    await scannerStore.setParsedData(
+                      strippedData,
+                      accountsStore
+                    );
                   }
-                } else {
-                  return;
+  
+                  if (scannerStore.getUnsigned()) {
+                    await scannerStore.setData(accountsStore);
+                    if (scannerStore.getType() === 'transaction') {
+                      this.props.navigation.navigate('TxDetails');
+                    } else {
+                      this.props.navigation.navigate('MessageDetails');
+                    }
+                  } else {
+                    return;
+                  }
+                } catch (e) {
+                  return this.showErrorMessage(scannerStore, text.PARSE_ERROR_TITLE, e.message);
                 }
               }}
             />
@@ -143,6 +161,12 @@ export class QrScannerView extends React.PureComponent {
   }
 }
 
+const text = {
+  ADDRESS_ERROR_TITLE: 'Address detected',
+  ADDRESS_ERROR_MESSAGE: 'Please create a transaction using a software such as MyCrypto or Fether so that Parity Signer can sign it.',
+  PARSE_ERROR_TITLE: 'Unable to parse transaction'
+};
+
 const styles = StyleSheet.create({
   inactive: {
     backgroundColor: colors.bg,
@@ -207,6 +231,6 @@ const styles = StyleSheet.create({
     color: colors.bg_text,
     fontSize: 14,
     fontFamily: fonts.bold,
-    paddingBottom: 20,
+    paddingBottom: 20
   }
 });

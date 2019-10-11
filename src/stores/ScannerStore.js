@@ -15,11 +15,12 @@
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
 // @flow
-
-import { createType } from '@polkadot/types';
+import { GenericExtrinsicPayload } from '@polkadot/types';
+import { hexStripPrefix, isU8a, u8aToHex } from '@polkadot/util';
+import { checkAddress, decodeAddress, encodeAddress  } from '@polkadot/util-crypto';
 import { Container } from 'unstated';
 
-import { NETWORK_LIST, NetworkProtocols } from '../constants';
+import { NETWORK_LIST, NetworkProtocols, SUBSTRATE_NETWORK_LIST } from '../constants';
 import { saveTx } from '../util/db';
 import { isAscii } from '../util/message';
 import { blake2s, brainWalletSign, decryptData, keccak, ethSign, substrateSign } from '../util/native';
@@ -66,7 +67,7 @@ const defaultState = {
   tx: '',
   txRequest: null,
   type: null,
-  unsignedData: {}
+  unsignedData: null
 };
 
 export default class ScannerStore extends Container<ScannerState> {
@@ -80,9 +81,23 @@ export default class ScannerStore extends Container<ScannerState> {
 
   async setParsedData(strippedData, accountsStore) {
     const parsedData = await constructDataFromBytes(strippedData);
-    
+
+    if (!accountsStore.getByAddress(parsedData.data.account)) {
+      let networks = Object.keys(SUBSTRATE_NETWORK_LIST);
+
+      for (let i = 0; i < networks.length; i++) {
+        let key =  networks[i];
+        let account = accountsStore.getByAddress(encodeAddress(decodeAddress(parsedData.data.account), SUBSTRATE_NETWORK_LIST[key].prefix));
+
+        if (account) {
+          parsedData['data']['account'] = account.address;
+          break;
+        }
+      }
+    }
+
     if (parsedData.isMultipart) {
-      this.setPartData(parseData.frame, parsedData.frameCount, parseData.partData, accountsStore);
+      this.setPartData(parsedData.frame, parsedData.frameCount, parsedData.partData, accountsStore);
       return;
     }
 
@@ -100,7 +115,7 @@ export default class ScannerStore extends Container<ScannerState> {
     // we havne't filled all the frames yet
     if (Object.keys(this.state.multipartData.length) < frameCount) {
       const nextDataState = this.state.multipartData;
-      
+
       nextDataState[frame] = partData;
 
       this.setState({
@@ -177,10 +192,9 @@ export default class ScannerStore extends Container<ScannerState> {
     }
 
     const tx = isEthereum ? await transaction(txRequest.data.rlp) : txRequest.data.data;
-    const networkKey = isEthereum ? tx.ethereumChainId : '456';
+    const networkKey = isEthereum ? tx.ethereumChainId : txRequest.data.data.genesisHash.toHex();
 
     const sender = accountsStore.getById({
-      protocol,
       networkKey,
       address: txRequest.data.account
     });
@@ -196,14 +210,13 @@ export default class ScannerStore extends Container<ScannerState> {
     }
 
     const recipient = accountsStore.getById({
-      protocol,
       networkKey: networkKey,
       address: isEthereum ? tx.action : txRequest.data.account
     });
 
     // For Eth, always sign the keccak hash.
     // For Substrate, only sign the blake2 hash if payload bytes length > 256 bytes (handled in decoder.js).
-    const dataToSign = sender.protocol === NetworkProtocols.ETHEREUM ? await keccak(txRequest.data.rlp) : txRequest.data.data;
+    const dataToSign = isEthereum ? await keccak(txRequest.data.rlp) : txRequest.data.data;
 
     this.setState({
       type: 'transaction',
@@ -221,19 +234,29 @@ export default class ScannerStore extends Container<ScannerState> {
     const { isHash, sender, type } = this.state;
 
     const seed = await decryptData(sender.encryptedSeed, pin);
-    const isEthereum = sender.protocol === NetworkProtocols.ETHEREUM;
+    const isEthereum = NETWORK_LIST[sender.networkKey].protocol === NetworkProtocols.ETHEREUM;
 
     let signedData;
 
     if (isEthereum) {
       signedData = await brainWalletSign(seed, this.state.dataToSign);
     } else {
-      signedData = await substrateSign(seed, isAscii(this.state.dataToSign) ? asciiToHex(this.state.dataToSign) : this.state.dataToSign.toHex());
+      let signable;
+
+      if (this.state.dataToSign instanceof GenericExtrinsicPayload) {
+        signable = u8aToHex(this.state.dataToSign.toU8a(true), -1, false);
+      } else if (isU8a(this.state.dataToSign)) {
+        signable = hexStripPrefix(u8aToHex(this.state.dataToSign));
+      } else if (isAscii(this.state.dataToSign)) {
+        signable = hexStripPrefix(asciiToHex(this.state.dataToSign));
+      }
+
+      signedData = await substrateSign(seed, signable);
     }
 
     this.setState({ signedData });
 
-    if (type == 'transaction') {
+    if (type === 'transaction') {
       await saveTx({
         hash: (isEthereum || isHash) ? this.state.dataToSign : await blake2s(this.state.dataToSign.toHex()),
         tx: this.state.tx,
@@ -268,7 +291,11 @@ export default class ScannerStore extends Container<ScannerState> {
   cleanup() {
     this.setState(defaultState);
   }
-  
+
+  getIsHash() {
+    return this.state.isHash;
+  }
+
   getIsOversized() {
     return this.state.isOversized;
   }
@@ -287,6 +314,10 @@ export default class ScannerStore extends Container<ScannerState> {
 
   getMessage() {
     return this.state.message;
+  }
+
+  getUnsigned() {
+    return this.state.unsignedData;
   }
 
   getTx() {

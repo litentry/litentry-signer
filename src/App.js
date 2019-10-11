@@ -19,8 +19,11 @@
 'use strict';
 
 import '../shim';
+
+import '@polkadot/types/injector';
+
 import React, { Component } from 'react';
-import { StatusBar } from 'react-native';
+import {StatusBar, YellowBox} from 'react-native';
 import {
 	createAppContainer,
 	createStackNavigator,
@@ -60,17 +63,28 @@ import TxDetails from './screens/TxDetails';
 import TokenList from './modules/token/screens/TokenList';
 
 export default class App extends Component {
-	render() {
-		return (
-			<UnstatedProvider>
-				<MenuProvider backHandler={true}>
-					<StatusBar barStyle="light-content" />
-					<Background />
-					<ScreensContainer />
-				</MenuProvider>
-			</UnstatedProvider>
-		);
-	}
+  constructor() {
+    super();
+    if (__DEV__) {
+      YellowBox.ignoreWarnings([
+        'Warning: componentWillReceiveProps',
+        'Warning: componentWillMount',
+        'Warning: componentWillUpdate'
+      ]);
+    }
+  }
+
+  render() {
+    return (
+      <UnstatedProvider>
+        <MenuProvider backHandler={true}>
+          <StatusBar barStyle="light-content" />
+          <Background />
+          <ScreensContainer />
+        </MenuProvider>
+      </UnstatedProvider>
+    );
+  }
 }
 
 const globalStackNavigationOptions = {
@@ -112,117 +126,117 @@ const SecurityHeaderBackButton = withNavigation(
 );
 
 const Screens = createStackNavigator(
-	{
-		Loading: {
-			screen: Loading
-		},
-		Security: {
-			screen: createStackNavigator(
-				{
-					Security: {
-						screen: Security,
-						navigationOptions: {
-							headerLeft: <SecurityHeaderBackButton/>,
-							headerRight: null
-						}
-					}
-				},
-				{
-					defaultNavigationOptions: globalStackNavigationOptions,
-					headerMode: 'screen',
-				}
-			),
-		},
-		TocAndPrivacyPolicy: {
-			screen: createStackNavigator(
-				{
-					TermsAndConditions: {
-						screen: TermsAndConditions,
-						navigationOptions: {
-							headerLeft: <HeaderLeftHome />
-						}
-					},
-					PrivacyPolicy: {
-						screen: PrivacyPolicy
-					}
-				},
-				{
-					defaultNavigationOptions: globalStackNavigationOptions,
-					initialRouteParams: {
-						isWelcome: true
-					}
-				}
-			)
-		},
-		Welcome: {
-			screen: createStackNavigator(
-				{
-					AccountList: {
-						screen: AccountList,
-						navigationOptions: {
-							headerLeft: <HeaderLeftHome />
-						}
-					},
-					AccountNetworkChooser: {
-						screen: AccountNetworkChooser
-					},
-					AccountNew: {
-						screen: AccountNew
-					},
-					AccountRecover: {
-						screen: AccountRecover
-					},
-					AccountBackup: {
-						screen: AccountBackup
-					},
-					AccountPin: {
-						screen: AccountPin
-					},
-					QrScanner: {
-						screen: QrScanner,
-					},
-					TxDetails: {
-						screen: TxDetails
-					},
-					AccountUnlockAndSign: {
-						screen: AccountUnlockAndSign
-					},
-					SignedTx: {
-						screen: SignedTx
-					},
-					SignedMessage: {
-						screen: SignedMessage
-					},
-					MessageDetails: {
-						screen: MessageDetails
-					},
-					About: {
-						screen: About
-					},
-					AccountDetails: {
-						screen: AccountDetails
-					},
-					AccountUnlock: {
-						screen: AccountUnlock
-					},
-					AccountEdit: {
-						screen: AccountEdit
-					}
-				},
-				{
-					defaultNavigationOptions: globalStackNavigationOptions,
-					initialRouteParams: {
-						isWelcome: true
-					}
-				}
-			)
-		},
-	},
-	{
-		defaultNavigationOptions: globalStackNavigationOptions,
-		headerMode: 'none',
-		mode: 'card'
-	}
+  {
+    Loading: {
+      screen: Loading
+    },
+    Security: {
+      screen: createStackNavigator(
+        {
+          Security: {
+            screen: Security,
+            navigationOptions: {
+              headerLeft: <SecurityHeaderBackButton/>,
+              headerRight: null
+            }
+          }
+        },
+        {
+          defaultNavigationOptions: globalStackNavigationOptions,
+          headerMode: 'screen',
+        }
+      ),
+    },
+    TocAndPrivacyPolicy: {
+      screen: createStackNavigator(
+        {
+          TermsAndConditions: {
+            screen: TermsAndConditions,
+            navigationOptions: {
+              headerLeft: <HeaderLeftHome />
+            }
+          },
+          PrivacyPolicy: {
+            screen: PrivacyPolicy
+          }
+        },
+        {
+          defaultNavigationOptions: globalStackNavigationOptions,
+          initialRouteParams: {
+            isWelcome: true
+          }
+        }
+      )
+    },
+    Welcome: {
+      screen: createStackNavigator(
+          {
+          AccountList: {
+            screen: AccountList,
+            navigationOptions: {
+              headerLeft: <HeaderLeftHome />
+            }
+          },
+          AccountNetworkChooser: {
+            screen: AccountNetworkChooser
+          },
+          AccountNew: {
+            screen: AccountNew
+          },
+          AccountRecover: {
+            screen: AccountRecover
+          },
+          AccountBackup: {
+            screen: AccountBackup
+          },
+          AccountPin: {
+            screen: AccountPin
+          },
+          QrScanner: {
+            screen: QrScanner,
+          },
+          TxDetails: {
+            screen: TxDetails
+          },
+          AccountUnlockAndSign: {
+            screen: AccountUnlockAndSign
+          },
+          SignedTx: {
+            screen: SignedTx
+          },
+          SignedMessage: {
+            screen: SignedMessage
+          },
+          MessageDetails: {
+            screen: MessageDetails
+          },
+          About: {
+            screen: About
+          },
+          AccountDetails: {
+            screen: AccountDetails
+          },
+          AccountUnlock: {
+            screen: AccountUnlock
+          },
+          AccountEdit: {
+            screen: AccountEdit
+          }
+        },
+        {
+          defaultNavigationOptions: globalStackNavigationOptions,
+          initialRouteParams: {
+            isWelcome: true
+          }
+        }
+      )
+    },
+  },
+  {
+    defaultNavigationOptions: globalStackNavigationOptions,
+    headerMode: 'none',
+    mode: 'card'
+  }
 );
 
 const TokenStacks = createStackNavigator({

@@ -26,7 +26,7 @@ import AccountCard from '../components/AccountCard';
 import PayloadDetailsCard from '../components/PayloadDetailsCard';
 import TxDetailsCard from '../components/TxDetailsCard';
 import QrView from '../components/QrView';
-import { NetworkProtocols, TX_DETAILS_MSG } from '../constants';
+import { NETWORK_LIST, NetworkProtocols, SUBSTRATE_NETWORK_LIST, TX_DETAILS_MSG } from '../constants';
 import fonts from '../fonts';
 import AccountsStore from '../stores/AccountsStore';
 import ScannerStore from '../stores/ScannerStore';
@@ -55,15 +55,14 @@ export class SignedTxView extends React.PureComponent {
     data: PropTypes.string.isRequired,
     gas: PropTypes.string,
     gasPrice: PropTypes.string,
-    nonce: PropTypes.string,
     recipient: PropTypes.object,
     sender: PropTypes.object,
     value: PropTypes.string,
   };
 
   render() {
-    const { data, gas, gasPrice, nonce, recipient, sender, value } = this.props;
-
+    const { data, gas, gasPrice, recipient, sender, value } = this.props;
+    
     return (
       <ScrollView style={styles.body} contentContainerStyle={{ padding: 20 }}>
         <Text style={styles.topTitle}>SCAN SIGNATURE</Text>
@@ -72,7 +71,7 @@ export class SignedTxView extends React.PureComponent {
         </View>
         <Text style={styles.title}>TRANSACTION DETAILS</Text>
         {
-          sender.protocol === NetworkProtocols.ETHEREUM
+          NETWORK_LIST[sender.networkKey].protocol === NetworkProtocols.ETHEREUM
             ? (
               <React.Fragment>
                 <TxDetailsCard
@@ -94,6 +93,8 @@ export class SignedTxView extends React.PureComponent {
               <PayloadDetailsCard 
                 style={{ marginBottom: 20 }}
                 description={TX_DETAILS_MSG}
+                protocol={SUBSTRATE_NETWORK_LIST[sender.networkKey].protocol}
+                prefix={SUBSTRATE_NETWORK_LIST[sender.networkKey].prefix}
                 signature={data}
               />
             )
