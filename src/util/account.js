@@ -58,6 +58,7 @@ export function empty(address = '', networkKey = SubstrateNetworkKeys.KUSAMA) {
 		seedPhrase: '',
 		updatedAt: new Date().getTime(),
 		validBip39Seed: false,
+		tokens: [],
 	};
 }
 
