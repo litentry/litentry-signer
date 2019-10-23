@@ -66,10 +66,12 @@ export default class App extends Component {
   constructor() {
     super();
     if (__DEV__) {
+			console.reportErrorsAsExceptions = false;
       YellowBox.ignoreWarnings([
         'Warning: componentWillReceiveProps',
         'Warning: componentWillMount',
-        'Warning: componentWillUpdate'
+        'Warning: componentWillUpdate',
+        'console.error'
       ]);
     }
   }
