@@ -24,14 +24,15 @@ export default class TokenList extends React.Component {
 		console.disableYellowBox = true;
 		const provider = new WsProvider('ws://112.125.25.18:9944/');
 		ApiPromise.create({ provider }).then(createdApi=>{
-			this.setState({api: createdApi});
+			global.api = createdApi;
+			this.setState({api:createdApi});
 			console.log('API is ready')
 		}).catch(e=> console.log('api creating error is', e));
 	}
 
 	render() {
 		const { api } = this.state;
-		return api ? <TokenListView api={api} navigation={this.props.navigation}/> :
+		return api ? <TokenListView navigation={this.props.navigation}/> :
 			<View style={styles.loadingContainer}>
 				<Text style={styles.loadingText}>Waiting for API to be loaded...</Text>
 			</View>
@@ -42,7 +43,7 @@ function TokenListView(props) {
 // this is the actual default endpoint
 	const [tokenList, setTokenList] = useState([]);
 	const list = useRef(null);
-	const {api} = props;
+	const {api} = global;
 
 
 	function scrollToIndex() {
@@ -97,7 +98,7 @@ function TokenListView(props) {
 			renderItem={ ({item}) =>
 					<TokenCard
 						token={item}
-						onPress={address => props.navigation.navigate('TokenDetails')}
+						onPress={address => props.navigation.navigate('TokenDetails', {token: item})}
 						style={{ paddingBottom: 10 }}
 					/>
 			}

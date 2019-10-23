@@ -61,6 +61,7 @@ import SignedTx from './screens/SignedTx';
 import TermsAndConditions from './screens/TermsAndConditions';
 import TxDetails from './screens/TxDetails';
 import TokenList from './modules/token/screens/TokenList';
+import TokenDetails from './modules/token/screens/TokenDetails';
 
 export default class App extends Component {
   constructor() {
@@ -243,6 +244,7 @@ const Screens = createStackNavigator(
 
 const TokenStacks = createStackNavigator({
 	TokenList: TokenList,
+	TokenDetails: TokenDetails,
 });
 
 const TabNavigator = createBottomTabNavigator({
