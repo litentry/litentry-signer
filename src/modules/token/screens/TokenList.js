@@ -7,11 +7,9 @@ import AccountCard from '../../../components/AccountCard';
 import TokenCard from '../components/TokenCard';
 import fonts from '../../../fonts';
 import colors from '../../../colors';
+import { mock } from '../../config';
 const { ApiPromise, WsProvider } = require('@polkadot/api');
 
-const mockAccount = '5Evyk5JtBixLd4YJVJ1p2bvwHcUiU6sz2obt1AoNHQanSXVW'
-const mockIdentity = '0xf7b20801ad0e0ff5364d0b1446727c2a893ad43cecb212f8f8c5d6af6cc9089f'
-const mockTokens = [];
 
 export default class TokenList extends React.Component {
 	constructor(){
@@ -60,10 +58,10 @@ function TokenListView(props) {
 		const fetchTokens = async () => {
 			const tokensArray = [];
 			await api.isReady;
-			const totalNumbers = await api.query.litentryModule.ownedAuthorizedTokensCount(mockAccount);
+			const totalNumbers = await api.query.litentryModule.ownedAuthorizedTokensCount(mock.mockAccount);
 
 			for( let i = 0; i < totalNumbers; i++) {
-				const callResult = await api.query.litentryModule.ownedAuthorizedTokensArray([mockAccount, i]);
+				const callResult = await api.query.litentryModule.ownedAuthorizedTokensArray([mock.mockAccount, i]);
 				tokensArray.push({
 					id: i,
 					hash: callResult.toHex()
