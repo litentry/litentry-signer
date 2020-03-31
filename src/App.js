@@ -155,9 +155,6 @@ const Screens = createStackNavigator(
         {
           TermsAndConditions: {
             screen: TermsAndConditions,
-            navigationOptions: {
-              headerLeft: <HeaderLeftHome />
-            }
           },
           PrivacyPolicy: {
             screen: PrivacyPolicy
@@ -176,9 +173,6 @@ const Screens = createStackNavigator(
           {
           AccountList: {
             screen: AccountList,
-            navigationOptions: {
-              headerLeft: <HeaderLeftHome />
-            }
           },
           AccountNetworkChooser: {
             screen: AccountNetworkChooser
@@ -248,8 +242,8 @@ const TokenStacks = createStackNavigator({
 });
 
 const TabNavigator = createBottomTabNavigator({
-	Home: Screens,
 	Token: TokenStacks,
+	// Identities: Screens,
 });
 
 const ScreensContainer = createAppContainer(TabNavigator);

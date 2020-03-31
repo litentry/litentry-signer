@@ -38,7 +38,10 @@ export default function Address(props) {
 	}
 
 	return (
-		<Text numberOfLines={1} style={[style, styles.secondaryText]}>
+		<Text
+		numberOfLines={1}
+		style={[style, styles.secondaryText]}
+		ellipsizeMode="middle">
 			{prefix}
 			{result}
 		</Text>

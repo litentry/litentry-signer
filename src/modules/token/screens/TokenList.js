@@ -1,9 +1,6 @@
 import React from 'react';
 import {useState, useEffect, useRef} from 'react';
 import { FlatList, Text, View, SafeAreaView } from 'react-native';
-import Button from '../../../components/Button';
-import set from '@babel/runtime/helpers/esm/set';
-import AccountCard from '../../../components/AccountCard';
 import TokenCard from '../components/TokenCard';
 import fonts from '../../../fonts';
 import colors from '../../../colors';

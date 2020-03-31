@@ -22,11 +22,11 @@ export default function TokenDetails({navigation}) {
 
 	useEffect(()=> {
 		const getIdentity = async () => {
-			const identity = await api.query.litentryModule.authorizedTokenIdentity(token);
+			const identity = await api.query.litentryModule.authorizedTokenIdentity(token.hash);
 			setIdentity(identity.toString());
 		};
 		getIdentity();
-	}, []);
+	}, [identity]);
 
 	const generateSignedDetails = async () => {
 		let signable;
@@ -41,15 +41,15 @@ export default function TokenDetails({navigation}) {
 	};
 
 
-	return token.hash ? <View style={styles.body}>
-		<Text>Token QR Code</Text>
-		<Text>{`Token Hash: ${token.hash}`}</Text>
-		{identity !== '' && <Text>{`Token Belongs to Identity: ${identity}`}</Text>}
+	return token.hash ? <ScrollView style={styles.body}>
+		<Text style={styles.text}>Token QR Code</Text>
+		<Text style={styles.text}>{`Token Hash: ${token.hash}`}</Text>
+		{identity !== '' && <Text style={styles.text}>{`Token Belongs to Identity: ${identity}`}</Text>}
 		{signedToken !== '' && <View style={styles.qr}>
 			<QrView data={signedToken} />
 		</View>}
 		<Button title="Generate Signed Hash" onPress={ () => generateSignedDetails()}/>
-	</View>: <Text> No hash specified</Text>
+	</ScrollView>: <Text> No hash specified</Text>
 }
 
 const styles = {
@@ -63,4 +63,7 @@ const styles = {
 		marginTop: 20,
 		backgroundColor: colors.card_bg
 	},
-}
+	text: {
+		color: colors.bg_text,
+	}
+};
