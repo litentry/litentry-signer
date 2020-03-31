@@ -20,8 +20,6 @@
 
 import '../shim';
 
-import '@polkadot/types/injector';
-
 import React, { Component } from 'react';
 import {StatusBar, YellowBox} from 'react-native';
 import {
@@ -38,7 +36,6 @@ import '../shim';
 import Background from './components/Background';
 import colors from './colors';
 import fonts from './fonts';
-import HeaderLeftHome from './components/HeaderLeftHome';
 import SecurityHeader from './components/SecurityHeader';
 import '../ReactotronConfig';
 import About from './screens/About';
@@ -57,9 +54,7 @@ import PrivacyPolicy from './screens/PrivacyPolicy';
 import QrScanner from './screens/QrScanner';
 import Security from './screens/Security';
 import SignedMessage from './screens/SignedMessage';
-import SignedTx from './screens/SignedTx';
 import TermsAndConditions from './screens/TermsAndConditions';
-import TxDetails from './screens/TxDetails';
 import TokenList from './modules/token/screens/TokenList';
 import TokenDetails from './modules/token/screens/TokenDetails';
 
@@ -192,14 +187,8 @@ const Screens = createStackNavigator(
           QrScanner: {
             screen: QrScanner,
           },
-          TxDetails: {
-            screen: TxDetails
-          },
           AccountUnlockAndSign: {
             screen: AccountUnlockAndSign
-          },
-          SignedTx: {
-            screen: SignedTx
           },
           SignedMessage: {
             screen: SignedMessage

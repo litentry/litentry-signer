@@ -17,7 +17,7 @@ export default class TokenList extends React.Component {
 	}
 	componentDidMount(): void {
 		console.disableYellowBox = true;
-		const provider = new WsProvider('ws://112.125.25.18:9944/');
+		const provider = new WsProvider('ws://52.28.235.180:9944/');
 		ApiPromise.create({ provider }).then(createdApi=>{
 			global.api = createdApi;
 			this.setState({api:createdApi});
