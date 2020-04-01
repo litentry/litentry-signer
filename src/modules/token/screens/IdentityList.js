@@ -31,6 +31,7 @@ function IdentityListView(props) {
 			ItemSeparatorComponent={() => <View style={{ height: 20 }} />}
 			renderItem={ ({item: identity, index}) =>
 					<TokenCard
+						title="id"
 						identity={identity}
 						index={index}
 						onPress={() => props.navigation.navigate('TokenList', {identity})}

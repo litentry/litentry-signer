@@ -31,7 +31,7 @@ TokenCard.defaultProps = {
 };
 
 export default function TokenCard (props) {
-	const {identity, onPress, style, index} = props;
+	const {identity, onPress, style, index, title} = props;
 	return (
 		<TouchableItem
 			accessibilityComponentType="button"
@@ -41,7 +41,7 @@ export default function TokenCard (props) {
 			<View style={[styles.body, style]}>
 				<View style={styles.desc}>
 					<Text numberOfLines={1} style={styles.titleText}>
-						{`Id ${index}`}
+						{`${title} ${index}`}
 					</Text>
 					<Text numberOfLines={1} style={styles.titleText} ellipsizeMode="middle">
 						{`hash: ${identity}`}

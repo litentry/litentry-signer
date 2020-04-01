@@ -5,6 +5,7 @@ import TokenCard from '../components/TokenCard';
 import fonts from '../../../fonts';
 import colors from '../../../colors';
 import { useTokens } from '../hooks';
+import QrView from '../../../components/QrView';
 
 export default function TokenList({navigation}) {
 // this is the actual default endpoint
@@ -13,6 +14,7 @@ export default function TokenList({navigation}) {
 	const tokens  = useTokens(identity);
 
 	return <SafeAreaView style={styles.container}>
+		{identity != null && <QrView data={identity} />}
 		<FlatList
 			ref={list}
 			style={styles.content}
@@ -21,6 +23,7 @@ export default function TokenList({navigation}) {
 			ItemSeparatorComponent={() => <View style={{ height: 20 }} />}
 			renderItem={ ({item: token, index}) =>
 				<TokenCard
+					title="token"
 					identity={token}
 					index={index}
 					onPress={() => navigation.navigate('TokenDetails', {token})}
