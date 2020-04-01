@@ -47,7 +47,7 @@ export default function TokenDetails({navigation}) {
 
 	return token ? <ScrollView style={styles.body}>
 		<Text style={styles.text}>Token QR Code</Text>
-		<Text style={styles.text}>{`Token Hash: ${token.hash}`}</Text>
+		<Text style={styles.text}>{`Token Hash: ${token}`}</Text>
 		{identity !== '' && <Text style={styles.text}>{`Token Belongs to Identity: ${identity}`}</Text>}
 		{signedToken !== '' && <View style={styles.qr}>
 			<QrView data={signedToken} />
