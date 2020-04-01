@@ -17,30 +17,15 @@
 // @flow
 import { GenericExtrinsicPayload } from '@polkadot/types';
 import { hexStripPrefix, isU8a, u8aToHex } from '@polkadot/util';
-import {
-	checkAddress,
-	decodeAddress,
-	encodeAddress,
-} from '@polkadot/util-crypto';
+import { decodeAddress, encodeAddress } from '@polkadot/util-crypto';
 import { Container } from 'unstated';
 
-import {
-	NETWORK_LIST,
-	NetworkProtocols,
-	SUBSTRATE_NETWORK_LIST,
-} from '../constants';
+import { NETWORK_LIST, NetworkProtocols, SUBSTRATE_NETWORK_LIST } from '../constants';
 import { saveTx } from '../util/db';
 import { isAscii } from '../util/message';
-import {
-	blake2s,
-	brainWalletSign,
-	decryptData,
-	keccak,
-	ethSign,
-	substrateSign,
-} from '../util/native';
+import { blake2s, brainWalletSign, decryptData, ethSign, keccak, substrateSign } from '../util/native';
 import transaction from '../util/transaction';
-import { constructDataFromBytes, asciiToHex } from '../util/decoders';
+import { asciiToHex, constructDataFromBytes } from '../util/decoders';
 import { Account } from './AccountsStore';
 
 type TXRequest = Object;

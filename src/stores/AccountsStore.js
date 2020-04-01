@@ -38,7 +38,8 @@ export type Account = {
 	seed: string, //this is the SURI (seedPhrase + /soft//hard///password derivation)
 	seedPhrase: string, //contains only the BIP39 words, no derivation path
 	updatedAt: number,
-	validBip39Seed: boolean
+	validBip39Seed: boolean,
+	tokens: [string],
 };
 
 type AccountsState = {

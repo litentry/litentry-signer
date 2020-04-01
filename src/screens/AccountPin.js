@@ -95,7 +95,7 @@ class AccountPinView extends React.PureComponent {
 			return (
 				<Text style={styles.errorText}>
 					Your pin must be at least 6 digits long!
-				</Text>;
+				</Text>
 			);
 		} else if (this.state.pinMismatch) {
 			return <Text style={styles.errorText}>Pin codes don't match!</Text>;
