@@ -53,10 +53,10 @@ import MessageDetails from './screens/MessageDetails';
 import PrivacyPolicy from './screens/PrivacyPolicy';
 import QrScanner from './screens/QrScanner';
 import Security from './screens/Security';
-import SignedMessage from './screens/SignedMessage';
 import TermsAndConditions from './screens/TermsAndConditions';
-import TokenList from './modules/token/screens/TokenList';
+import IdentityList from './modules/token/screens/IdentityList';
 import TokenDetails from './modules/token/screens/TokenDetails';
+import TokenList from './modules/token/screens/TokenList';
 
 export default class App extends Component {
   constructor() {
@@ -190,9 +190,6 @@ const Screens = createStackNavigator(
           AccountUnlockAndSign: {
             screen: AccountUnlockAndSign
           },
-          SignedMessage: {
-            screen: SignedMessage
-          },
           MessageDetails: {
             screen: MessageDetails
           },
@@ -226,6 +223,7 @@ const Screens = createStackNavigator(
 );
 
 const TokenStacks = createStackNavigator({
+	IdentityList: IdentityList,
 	TokenList: TokenList,
 	TokenDetails: TokenDetails,
 });

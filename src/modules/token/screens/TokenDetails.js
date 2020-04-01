@@ -8,6 +8,7 @@ import { isAscii } from '../../../util/message';
 import { asciiToHex } from '../../../util/decoders';
 import { substrateSign } from '../../../util/native';
 import { mock } from '../../config';
+import { getTokenIdentity } from '../hooks';
 
 TokenDetails.navigationOptions = {
 	title: 'Token Details'
@@ -22,7 +23,7 @@ export default function TokenDetails({navigation}) {
 
 	useEffect(()=> {
 		const getIdentity = async () => {
-			const identity = await api.query.litentryModule.authorizedTokenIdentity(token.hash);
+			const identity = await getTokenIdentity(token);
 			setIdentity(identity.toString());
 		};
 		getIdentity();
@@ -40,15 +41,18 @@ export default function TokenDetails({navigation}) {
 		setSignedToken(`${dataToSign}:${signedData}`);
 	};
 
+	const generateMockSigning = () => {
+		setSignedToken(token);
+	};
 
-	return token.hash ? <ScrollView style={styles.body}>
+	return token ? <ScrollView style={styles.body}>
 		<Text style={styles.text}>Token QR Code</Text>
 		<Text style={styles.text}>{`Token Hash: ${token.hash}`}</Text>
 		{identity !== '' && <Text style={styles.text}>{`Token Belongs to Identity: ${identity}`}</Text>}
 		{signedToken !== '' && <View style={styles.qr}>
 			<QrView data={signedToken} />
 		</View>}
-		<Button title="Generate Signed Hash" onPress={ () => generateSignedDetails()}/>
+		<Button title="Generate Signed Hash" onPress={ () => generateMockSigning()}/>
 	</ScrollView>: <Text> No hash specified</Text>
 }
 
