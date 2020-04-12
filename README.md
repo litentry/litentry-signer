@@ -1,5 +1,5 @@
 
-# Litentry Signer
+# Litentry Authenticator
 
 ## Build it
 ### Requirements
