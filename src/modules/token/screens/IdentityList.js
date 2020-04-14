@@ -4,8 +4,9 @@ import { FlatList, Text, View, SafeAreaView } from 'react-native';
 import TokenCard from '../components/TokenCard';
 import fonts from '../../../fonts';
 import colors from '../../../colors';
-import { createIdentity, useApi, useIdentities } from '../hooks';
+import { useApi, useIdentities } from '../hooks';
 import Button from '../../../components/Button';
+import Head from '../components/Head';
 
 
 export default function IdentityList({navigation}) {
@@ -23,6 +24,7 @@ function IdentityListView(props) {
 	const identities  = useIdentities('5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY');
 
 	return <SafeAreaView style={styles.container}>
+		<Head label="Owned Identities"/>
 		<FlatList
 			ref={list}
 			style={styles.content}
@@ -40,7 +42,8 @@ function IdentityListView(props) {
 			}
 			enableEmptySections
 		/>
-		{/*<Button title={'Generate Identity'} onPress={()=>createIdentity()}/>*/}
+
+		<Button title={'Received Tokens'} onPress={()=>(props.navigation.navigate('ReceivedTokenList'))}/>
 	</SafeAreaView>;
 }
 

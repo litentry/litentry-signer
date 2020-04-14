@@ -61,6 +61,29 @@ export function useIdentities(account) {
 	return identities;
 }
 
+export function useReceivedTokens (account){
+	const [tokens, setTokens] = useState([]);
+	useEffect(()=> {
+		async function fetchTokens () {
+			if(account === null || account === '') return;
+			const totalNumbers = await api.query.lintentryTemplateModule.ownedAuthorizedTokensCount(account);
+			if(totalNumbers.words) {
+				const a = new Array(totalNumbers.words[0]).fill(null);
+				const promises = a.map((_, i) => {
+					return api.query.lintentryTemplateModule.ownedAuthorizedTokensArray([account, i]);
+				});
+				console.log('promises are', promises);
+				let results = await Promise.all(promises);
+				const unwrappedResult = results.map(wrappedItem => wrappedItem.toString());
+				console.log('result Array is', results, 'call result is', unwrappedResult);
+				setTokens(unwrappedResult);
+			}
+		}
+		fetchTokens();
+	}, [account]);
+	return tokens;
+}
+
 export function useTokens(identityId) {
 	const [tokens, setTokens] = useState([]);
 	useEffect(()=> {

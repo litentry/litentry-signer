@@ -18,7 +18,7 @@ export default function TokenDetails({navigation}) {
 
 	const token = navigation.getParam('token');
 
-	const [signedToken, setSignedToken] = useState('');
+	const [qrData, setQrData] = useState('');
 	const [identity, setIdentity] = useState('');
 
 	useEffect(()=> {
@@ -38,21 +38,26 @@ export default function TokenDetails({navigation}) {
 			signable = hexStripPrefix(asciiToHex(dataToSign));
 		}
 		const signedData = await substrateSign(mock.mockWrongSeed, signable);
-		setSignedToken(`${dataToSign}:${signedData}`);
+		setQrData(`${dataToSign}:${signedData}`);
 	};
 
 	const generateMockSigning = () => {
-		setSignedToken(token);
+		setQrData(token);
+	};
+
+	const showIdentityQR = () => {
+		setQrData(identity)
 	};
 
 	return token ? <ScrollView style={styles.body}>
 		<Text style={styles.text}>Token QR Code</Text>
 		<Text style={styles.text}>{`Token Hash: ${token}`}</Text>
 		{identity !== '' && <Text style={styles.text}>{`Token Belongs to Identity: ${identity}`}</Text>}
-		{signedToken !== '' && <View style={styles.qr}>
-			<QrView data={signedToken} />
+		{qrData !== '' && <View style={styles.qr}>
+			<QrView data={qrData} />
 		</View>}
-		<Button title="Generate Signed Hash" onPress={ () => generateMockSigning()}/>
+		<Button title="Generate Signed Token" buttonStyles={styles.qrButton} onPress={generateMockSigning}/>
+		<Button title="Show Identity QR" buttonStyles={styles.qrButton} onPress={showIdentityQR}/>
 	</ScrollView>: <Text> No hash specified</Text>
 }
 
@@ -69,5 +74,8 @@ const styles = {
 	},
 	text: {
 		color: colors.bg_text,
+	},
+	qrButton: {
+		marginTop: 5,
 	}
 };

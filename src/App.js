@@ -57,6 +57,7 @@ import TermsAndConditions from './screens/TermsAndConditions';
 import IdentityList from './modules/token/screens/IdentityList';
 import TokenDetails from './modules/token/screens/TokenDetails';
 import TokenList from './modules/token/screens/TokenList';
+import ReceivedTokenList from './modules/token/screens/ReceivedTokenList';
 
 export default class App extends Component {
   constructor() {
@@ -226,6 +227,7 @@ const TokenStacks = createStackNavigator({
 	IdentityList: IdentityList,
 	TokenList: TokenList,
 	TokenDetails: TokenDetails,
+	ReceivedTokenList: ReceivedTokenList,
 });
 
 const TabNavigator = createBottomTabNavigator({
