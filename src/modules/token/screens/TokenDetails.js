@@ -8,6 +8,7 @@ import { isAscii } from '../../../util/message';
 import { asciiToHex } from '../../../util/decoders';
 import { substrateSign } from '../../../util/native';
 import { mock } from '../../config';
+import { getTokenIdentity } from '../hooks';
 
 TokenDetails.navigationOptions = {
 	title: 'Token Details'
@@ -17,16 +18,16 @@ export default function TokenDetails({navigation}) {
 
 	const token = navigation.getParam('token');
 
-	const [signedToken, setSignedToken] = useState('');
+	const [qrData, setQrData] = useState('');
 	const [identity, setIdentity] = useState('');
 
 	useEffect(()=> {
 		const getIdentity = async () => {
-			const identity = await api.query.litentryModule.authorizedTokenIdentity(token);
+			const identity = await getTokenIdentity(token);
 			setIdentity(identity.toString());
 		};
 		getIdentity();
-	}, []);
+	}, [identity]);
 
 	const generateSignedDetails = async () => {
 		let signable;
@@ -37,19 +38,27 @@ export default function TokenDetails({navigation}) {
 			signable = hexStripPrefix(asciiToHex(dataToSign));
 		}
 		const signedData = await substrateSign(mock.mockWrongSeed, signable);
-		setSignedToken(`${dataToSign}:${signedData}`);
+		setQrData(`${dataToSign}:${signedData}`);
 	};
 
+	const generateMockSigning = () => {
+		setQrData(token);
+	};
 
-	return token.hash ? <View style={styles.body}>
-		<Text>Token QR Code</Text>
-		<Text>{`Token Hash: ${token.hash}`}</Text>
-		{identity !== '' && <Text>{`Token Belongs to Identity: ${identity}`}</Text>}
-		{signedToken !== '' && <View style={styles.qr}>
-			<QrView data={signedToken} />
+	const showIdentityQR = () => {
+		setQrData(identity)
+	};
+
+	return token ? <ScrollView style={styles.body}>
+		<Text style={styles.text}>Token QR Code</Text>
+		<Text style={styles.text}>{`Token Hash: ${token}`}</Text>
+		{identity !== '' && <Text style={styles.text}>{`Token Belongs to Identity: ${identity}`}</Text>}
+		{qrData !== '' && <View style={styles.qr}>
+			<QrView data={qrData} />
 		</View>}
-		<Button title="Generate Signed Hash" onPress={ () => generateSignedDetails()}/>
-	</View>: <Text> No hash specified</Text>
+		<Button title="Generate Signed Token" buttonStyles={styles.qrButton} onPress={generateMockSigning}/>
+		<Button title="Show Identity QR" buttonStyles={styles.qrButton} onPress={showIdentityQR}/>
+	</ScrollView>: <Text> No hash specified</Text>
 }
 
 const styles = {
@@ -63,4 +72,10 @@ const styles = {
 		marginTop: 20,
 		backgroundColor: colors.card_bg
 	},
-}
+	text: {
+		color: colors.bg_text,
+	},
+	qrButton: {
+		marginTop: 5,
+	}
+};

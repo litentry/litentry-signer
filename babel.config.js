@@ -17,6 +17,7 @@ module.exports = {
           "vm": "vm-browserify"
         }
       }
-    ]
+    ],
+		['./scripts/rewrite-node-global']
   ]
-} 
+}

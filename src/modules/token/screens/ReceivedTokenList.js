@@ -1,20 +1,17 @@
-import React from 'react';
-import {useState, useEffect, useRef} from 'react';
-import { FlatList, Text, View, SafeAreaView } from 'react-native';
+import React, { useRef } from 'react';
+import { useReceivedTokens, useTokens } from '../hooks';
+import { FlatList, SafeAreaView, View } from 'react-native';
 import TokenCard from '../components/TokenCard';
+import Head from '../components/Head';
 import fonts from '../../../fonts';
 import colors from '../../../colors';
-import { useTokens } from '../hooks';
-import QrView from '../../../components/QrView';
 
-export default function TokenList({navigation}) {
-// this is the actual default endpoint
+export default function ReceivedTokenList({navigation}){
 	const list = useRef(null);
-	const identity = navigation.getParam('identity');
-	const tokens  = useTokens(identity);
+	const tokens  = useReceivedTokens('5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY');
 
 	return <SafeAreaView style={styles.container}>
-		{identity != null && <QrView data={identity} />}
+		<Head label="Received Token List"/>
 		<FlatList
 			ref={list}
 			style={styles.content}
